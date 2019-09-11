@@ -15,26 +15,64 @@
           <v-divider></v-divider>
           <v-layout justify-center text-center row pa-5>
             <v-flex xs12 md6 lg4 px-3>
-              <v-select prepend-icon="fas fa-car" v-model="booking.transportationSelected" :items="transportationList" label="Transportation"></v-select>
+              <v-select prepend-icon="fas fa-car"
+                        v-model="booking.transportationSelected"
+                        :items="transportationList"
+                        label="Transportation">
+              </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
-              <v-select item-value="id" :disabled="departureList.length == 0" item-text="name" prepend-icon="fa fa-map-signs" v-model="booking.departureSelected" :items="departureList" label="Departure"></v-select>
+              <v-select item-value="id"
+                        :disabled="departureList.length == 0"
+                        item-text="name"
+                        prepend-icon="fa fa-map-signs"
+                        v-model="booking.departureSelected"
+                        :items="departureList"
+                        label="Departure">
+              </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
-              <v-select item-value="id" :disabled="destinationList.length == 0" item-text="name" prepend-icon="fa fa-map" v-model="booking.destinationSelected" :items="destinationList" label="Destination/Country"></v-select>
+              <v-select item-value="id"
+                        :disabled="destinationList.length == 0"
+                        item-text="name"
+                        prepend-icon="fa fa-map"
+                        v-model="booking.destinationSelected"
+                        :items="destinationList"
+                        label="Destination/Country">
+              </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
-              <v-select item-value="id" :disabled="resortList.length == 0" item-text="name" prepend-icon="fa fa-map-marker" v-model="booking.resortSelected" :items="resortList" label="Destination/Resort"></v-select>
+              <v-select item-value="id"
+                        :disabled="resortList.length == 0"
+                        item-text="name"
+                        prepend-icon="fa fa-map-marker"
+                        v-model="booking.resortSelected"
+                        :items="resortList"
+                        label="Destination/Resort">
+              </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
-              <v-select item-value="id" :disabled="dateList.length == 0" item-text="name" prepend-icon="fa fa-calendar" v-model="booking.dateSelected" :items="dateList" label="Departure/Date">
+              <v-select item-value="id"
+                        :disabled="dateList.length == 0"
+                        item-text="name"
+                        prepend-icon="fa fa-calendar"
+                        v-model="booking.dateSelected"
+                        :items="dateList"
+                        label="Departure/Date">
                 <template v-slot:item="{item}">
-                  <div style="width: 100%; text-align: center;">{{item.name}}</div>
+                  <div style="width: 100%; text-align: center;">
+                    {{item.name}}
+                  </div>
                 </template>
               </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
-              <v-select :disabled="durationList.length == 0" prepend-icon="fa fa-calendar-times" v-model="booking.durationSelected" :items="durationList" label="Duration"></v-select>
+              <v-select :disabled="durationList.length == 0"
+                        prepend-icon="fa fa-calendar-times"
+                        v-model="booking.durationSelected"
+                        :items="durationList"
+                        label="Duration">
+              </v-select>
             </v-flex>
           </v-layout>
           <v-divider></v-divider>
@@ -50,7 +88,8 @@
 </template>
 
 <script>
-import axios from 'axios'
+/* eslint-disable vue/no-side-effects-in-computed-properties, no-restricted-syntax, no-console */
+import axios from 'axios';
 
 export default {
   data: () => ({
@@ -73,22 +112,22 @@ export default {
     dateList: [],
     durationList: [],
   }),
-  created: function() {
+  created() {
     axios.get('https://booking.jeresferie.dk/server/authOp.php?action=packageTransportTypes&type=package&currency=DKK')
       .then((response) => {
         this.transportationList = response.data;
       })
-      .catch(function (error) {
+      .catch((error) => {
         console.log(error);
       });
   },
   computed: {
     progressProc() {
       let tot = 0;
-      for (var prop in this.booking) {
+      for (const prop in this.booking) {
         if (Object.prototype.hasOwnProperty.call(this.booking, prop)) {
           if (this.booking[prop]) {
-            tot++;
+            tot += 1;
           }
         }
       }
@@ -97,7 +136,7 @@ export default {
       } else {
         this.showPlane = false;
       }
-      if (tot == 6) {
+      if (tot === 6) {
         this.showPlane = false;
         this.canSearch = true;
       } else {
@@ -106,17 +145,17 @@ export default {
       if (tot < 2) {
         this.planeIcon = 'fas fa-plane-departure';
       } else
-      if (tot >= 2 && tot < 5 ) {
+      if (tot >= 2 && tot < 5) {
         this.planeIcon = 'fas fa-plane';
-      } else 
+      } else
       if (tot >= 5) {
-        this.planeIcon = 'fas fa-plane-arrival'
+        this.planeIcon = 'fas fa-plane-arrival';
       }
-      return tot * 100/6;
-    }
+      return tot * 100 / 6;
+    },
   },
   watch: {
-    'booking.transportationSelected'(val) {
+    'booking.transportationSelected': function transportationSelected(val) {
       this.booking.departureSelected = '';
       this.booking.destinationSelected = '';
       this.booking.resortSelected = '';
@@ -131,11 +170,11 @@ export default {
         .then((response) => {
           this.departureList = response.data;
         })
-        .catch(function (error) {
+        .catch((error) => {
           console.log(error);
         });
     },
-    'booking.departureSelected'(val) {
+    'booking.departureSelected': function departureSelected(val) {
       if (val) {
         this.booking.destinationSelected = '';
         this.booking.resortSelected = '';
@@ -149,12 +188,12 @@ export default {
           .then((response) => {
             this.destinationList = response.data;
           })
-          .catch(function (error) {
+          .catch((error) => {
             console.log(error);
           });
       }
     },
-    'booking.destinationSelected'(val) {
+    'booking.destinationSelected': function destinationSelected(val) {
       if (val) {
         this.booking.resortSelected = '';
         this.booking.dateSelected = '';
@@ -166,12 +205,12 @@ export default {
           .then((response) => {
             this.resortList = response.data;
           })
-          .catch(function (error) {
+          .catch((error) => {
             console.log(error);
           });
       }
     },
-    'booking.resortSelected'(val) {
+    'booking.resortSelected': function resortSelected(val) {
       if (val) {
         this.booking.dateSelected = '';
         this.booking.durationSelected = '';
@@ -179,32 +218,32 @@ export default {
         this.durationList = [];
         axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDates&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&destination=${val}&currency=DKK`)
           .then((response) => {
-            response.data.forEach(d => {
+            response.data.forEach((d) => {
               let dateFormatted = new Date(d.date * 1000);
               dateFormatted = dateFormatted.toLocaleDateString();
-              this.dateList.push({id: d.date, name: dateFormatted});
+              this.dateList.push({ id: d.date, name: dateFormatted });
             });
           })
-          .catch(function (error) {
+          .catch((error) => {
             console.log(error);
           });
       }
     },
-    'booking.dateSelected'(val) {
+    'booking.dateSelected': function dateSelected(val) {
       if (val) {
         this.booking.durationSelected = '';
         this.durationList = [];
         axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDurations&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&destination=${this.booking.destinationSelected}&date=${val}&currency=DKK`)
           .then((response) => {
-            response.data.forEach(d => {
+            response.data.forEach((d) => {
               this.durationList.push(d.duration);
             });
           })
-          .catch(function(error) {
+          .catch((error) => {
             console.log(error);
           });
       }
     },
-  }
+  },
 };
 </script>
