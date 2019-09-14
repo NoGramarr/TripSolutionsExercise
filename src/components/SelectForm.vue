@@ -18,7 +18,8 @@
               <v-select prepend-icon="fas fa-car"
                         v-model="booking.transportationSelected"
                         :items="transportationList"
-                        label="Transportation">
+                        label="Transportation"
+                        v-on:input="transportationSelected">
               </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
@@ -28,7 +29,8 @@
                         prepend-icon="fa fa-map-signs"
                         v-model="booking.departureSelected"
                         :items="departureList"
-                        label="Departure">
+                        label="Departure"
+                        v-on:input="departureSelected">
               </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
@@ -38,7 +40,8 @@
                         prepend-icon="fa fa-map"
                         v-model="booking.destinationSelected"
                         :items="destinationList"
-                        label="Destination/Country">
+                        label="Destination/Country"
+                        v-on:input="destinationSelected">
               </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
@@ -48,7 +51,8 @@
                         prepend-icon="fa fa-map-marker"
                         v-model="booking.resortSelected"
                         :items="resortList"
-                        label="Destination/Resort">
+                        label="Destination/Resort"
+                        v-on:input="resortSelected">
               </v-select>
             </v-flex>
             <v-flex xs12 md6 lg4 px-3>
@@ -58,7 +62,8 @@
                         prepend-icon="fa fa-calendar"
                         v-model="booking.dateSelected"
                         :items="dateList"
-                        label="Departure/Date">
+                        label="Departure/Date"
+                        v-on:input="dateSelected">
                 <template v-slot:item="{item}">
                   <div style="width: 100%; text-align: center;">
                     {{item.name}}
@@ -121,6 +126,97 @@ export default {
         console.log(error);
       });
   },
+  methods: {
+    transportationSelected(val) {
+      this.booking.departureSelected = '';
+      this.booking.destinationSelected = '';
+      this.booking.resortSelected = '';
+      this.booking.dateSelected = '';
+      this.booking.durationSelected = '';
+      this.departureList = [];
+      this.destinationList = [];
+      this.resortList = [];
+      this.dateList = [];
+      this.durationList = [];
+      axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDeparturePoints&type=package&transport=${val}`)
+        .then((response) => {
+          this.departureList = response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    departureSelected(val) {
+      if (val) {
+        this.booking.destinationSelected = '';
+        this.booking.resortSelected = '';
+        this.booking.dateSelected = '';
+        this.booking.durationSelected = '';
+        this.destinationList = [];
+        this.resortList = [];
+        this.dateList = [];
+        this.durationList = [];
+        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageCountries&type=package&transport=${this.booking.transportationSelected}&departure=${val}&currency=DKK`)
+          .then((response) => {
+            this.destinationList = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    },
+    destinationSelected(val) {
+      if (val) {
+        this.booking.resortSelected = '';
+        this.booking.dateSelected = '';
+        this.booking.durationSelected = '';
+        this.resortList = [];
+        this.dateList = [];
+        this.durationList = [];
+        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageResorts&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&country=${val}&currency=DKK`)
+          .then((response) => {
+            this.resortList = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    },
+    resortSelected(val) {
+      if (val) {
+        this.booking.dateSelected = '';
+        this.booking.durationSelected = '';
+        this.dateList = [];
+        this.durationList = [];
+        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDates&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&destination=${val}&currency=DKK`)
+          .then((response) => {
+            response.data.forEach((d) => {
+              let dateFormatted = new Date(d.date * 1000);
+              dateFormatted = dateFormatted.toLocaleDateString();
+              this.dateList.push({ id: d.date, name: dateFormatted });
+            });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    },
+    dateSelected(val) {
+      if (val) {
+        this.booking.durationSelected = '';
+        this.durationList = [];
+        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDurations&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&destination=${this.booking.destinationSelected}&date=${val}&currency=DKK`)
+          .then((response) => {
+            response.data.forEach((d) => {
+              this.durationList.push(d.duration);
+            });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    },
+  },
   computed: {
     progressProc() {
       let tot = 0;
@@ -152,97 +248,6 @@ export default {
         this.planeIcon = 'fas fa-plane-arrival';
       }
       return tot * 100 / 6;
-    },
-  },
-  watch: {
-    'booking.transportationSelected': function transportationSelected(val) {
-      this.booking.departureSelected = '';
-      this.booking.destinationSelected = '';
-      this.booking.resortSelected = '';
-      this.booking.dateSelected = '';
-      this.booking.durationSelected = '';
-      this.departureList = [];
-      this.destinationList = [];
-      this.resortList = [];
-      this.dateList = [];
-      this.durationList = [];
-      axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDeparturePoints&type=package&transport=${val}`)
-        .then((response) => {
-          this.departureList = response.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
-    'booking.departureSelected': function departureSelected(val) {
-      if (val) {
-        this.booking.destinationSelected = '';
-        this.booking.resortSelected = '';
-        this.booking.dateSelected = '';
-        this.booking.durationSelected = '';
-        this.destinationList = [];
-        this.resortList = [];
-        this.dateList = [];
-        this.durationList = [];
-        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageCountries&type=package&transport=${this.booking.transportationSelected}&departure=${val}&currency=DKK`)
-          .then((response) => {
-            this.destinationList = response.data;
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      }
-    },
-    'booking.destinationSelected': function destinationSelected(val) {
-      if (val) {
-        this.booking.resortSelected = '';
-        this.booking.dateSelected = '';
-        this.booking.durationSelected = '';
-        this.resortList = [];
-        this.dateList = [];
-        this.durationList = [];
-        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageResorts&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&country=${val}&currency=DKK`)
-          .then((response) => {
-            this.resortList = response.data;
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      }
-    },
-    'booking.resortSelected': function resortSelected(val) {
-      if (val) {
-        this.booking.dateSelected = '';
-        this.booking.durationSelected = '';
-        this.dateList = [];
-        this.durationList = [];
-        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDates&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&destination=${val}&currency=DKK`)
-          .then((response) => {
-            response.data.forEach((d) => {
-              let dateFormatted = new Date(d.date * 1000);
-              dateFormatted = dateFormatted.toLocaleDateString();
-              this.dateList.push({ id: d.date, name: dateFormatted });
-            });
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      }
-    },
-    'booking.dateSelected': function dateSelected(val) {
-      if (val) {
-        this.booking.durationSelected = '';
-        this.durationList = [];
-        axios.get(`https://booking.jeresferie.dk/server/authOp.php?action=packageDurations&type=package&transport=${this.booking.transportationSelected}&departure=${this.booking.departureSelected}&destination=${this.booking.destinationSelected}&date=${val}&currency=DKK`)
-          .then((response) => {
-            response.data.forEach((d) => {
-              this.durationList.push(d.duration);
-            });
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      }
     },
   },
 };
